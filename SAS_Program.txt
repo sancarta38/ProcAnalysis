@@ -1,0 +1,69 @@
+*===================================================================================================================
+Program: Program1.sas
+Data: mydata.txt
+Objective: The program reads demographic information (Gender, age, height, and weight) from the above data file
+and then calculates/displays mean & standard deviations, CANDISC Proc (canonical discriminant analysis),
+as well as the respective graphic(s).
+The categorical/classification variable is gender. The the quantitative variables are age, weight, and height.
+The CANDISC Procedure will be used for the analysis. The number of canonical variables will equal the # of original
+variables or the # of classes minus one, whichever is smaller.
+The code below can be ran in your SAS software. You'll need to use the upload function and Import Data options to 
+import the external data set.
+Note: The RUN statement is not required between steps, using it will create a step boundary and makes the SAS log 
+easier to read. Also, if a data step is not to be ran, use the RUN with CANCEL option to end the DATA step and pevent 
+it from executing.
+*=======================================================================================================================
+;
+data demographic;
+	infile '/folders/myfolders/mydata.txt';
+	input Gender $ Age Height Weight;
+	run;
+	
+title "Listing of Demographic";
+proc print data=demographic;
+run;
+
+proc means data=demographic 
+			n 
+			mean 
+			std 
+			min 
+			max;
+	var age height weight;
+run;
+
+proc means data=demographic n mean std;
+	class gender;
+	var age height weight;
+run;
+
+proc corr data=demographic;
+	var age height weight;
+run;
+
+proc candisc data=demographic out=demographic;
+	class gender;
+	var age height weight;
+run;
+
+proc plot;
+	plot CAN1*CAN1=gender;
+title "Canonical Discriminant Functions Plot";
+run;
+
+proc template;
+	define statgraph classify;
+		begingraph;
+			layout overlay;
+				contourplotparm x=can1 y=can2 z=_into_;
+				scatterplot x=can1 y=can2;
+			endlayout;
+		endgraph;
+	end;
+run;
+
+proc chart data=demographic;
+	vbar gender;
+title "Number of Observations by Gender"; 
+run;
+quit;
